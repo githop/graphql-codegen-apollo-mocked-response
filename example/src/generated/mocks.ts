@@ -113,13 +113,13 @@ export const aQuery = (overrides?: Partial<Query>): Query => {
   };
 };
 
-interface MockFn<Input, Query> {
+interface MockFn<Variables, Query> {
   ({
-    input,
+    variables,
     result,
     error,
   }: {
-    input?: Input;
+    variables?: Variables;
     result?: Query;
     error?: ApolloError;
   }): MockedResponse<Query>;
@@ -128,7 +128,7 @@ interface MockFn<Input, Query> {
 export const mockListPlanets: MockFn<
   ListPlanetsQueryVariables,
   ListPlanetsQuery
-> = ({ result, input, error }) => {
+> = ({ result, variables, error }) => {
   const planetMock = aPlanet();
   const locationMock = aLocation();
 
@@ -148,7 +148,7 @@ export const mockListPlanets: MockFn<
   return {
     request: {
       query: ListPlanetsDocument,
-      variables: { input },
+      variables,
     },
     result: {
       data: result != null ? result : ListPlanetsResult,

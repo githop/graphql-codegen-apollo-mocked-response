@@ -8,7 +8,6 @@ import { QueryHost } from '../QueryHost';
 import { render } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing/react/MockedProvider';
 import { mockListPlanets } from '../../generated/mocks';
-import { ListPlanetsDocument } from '../../generated/types';
 
 describe('QueryHost', () => {
   const Component = (mocks?: any[]) => {
@@ -21,11 +20,11 @@ describe('QueryHost', () => {
 
   it('does things', async () => {
     const mocks = mockListPlanets({
-      input: { input: { type: 'Gaseous' } },
+      variables: { input: { type: 'Gaseous' } },
     });
 
     const { findByText } = Component([mocks]);
 
-    expect(await findByText('Hello World'));
+    expect(await findByText('vero'));
   });
 });

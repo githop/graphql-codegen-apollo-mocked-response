@@ -18,13 +18,13 @@ const APOLLO_IMPORTS = [
 ];
 
 const MOCK_FN_INTERFACE = `
-  interface MockFn<Input, Query> {
+  interface MockFn<Variables, Query> {
     ({
-      input,
+      variables,
       result,
       error,
     }: {
-      input?: Input;
+      variables?: Variables;
       result?: Query;
       error?: ApolloError;
     }): MockedResponse<Query>;
@@ -89,7 +89,7 @@ function mockFnTemplate({
   export const ${functionName}: MockFn<
   ${queryVarsType},
   ${queryResultType}
-> = ({ result, input, error }) => {
+> = ({ result, variables, error }) => {
   ${mocks}
 
   ${queryResult}
@@ -97,7 +97,7 @@ function mockFnTemplate({
   return {
     request: {
       query: ${documentNode},
-      variables: { input },
+      variables,
     },
     result: {
       data: result != null ? result : ${queryResultVar},

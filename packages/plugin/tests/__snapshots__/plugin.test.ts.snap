@@ -2,13 +2,13 @@
 
 exports[`tests > config > should honor the addTypename config 1`] = `
 "
-  interface MockFn<Input, Query> {
+  interface MockFn<Variables, Query> {
     ({
-      input,
+      variables,
       result,
       error,
     }: {
-      input?: Input;
+      variables?: Variables;
       result?: Query;
       error?: ApolloError;
     }): MockedResponse<Query>;
@@ -18,7 +18,7 @@ exports[`tests > config > should honor the addTypename config 1`] = `
   export const mockListPlanets: MockFn<
   ListPlanetsQueryVariables,
   ListPlanetsQuery
-> = ({ result, input, error }) => {
+> = ({ result, variables, error }) => {
   const planetMock = aPlanet();
 const locationMock = aLocation();
 
@@ -27,7 +27,7 @@ const locationMock = aLocation();
   return {
     request: {
       query: ListPlanetsDocument,
-      variables: { input },
+      variables,
     },
     result: {
       data: result != null ? result : ListPlanetsResult,
@@ -42,13 +42,13 @@ exports[`tests > plugin > should produce valid ouput 1`] = `
 "import { ApolloError } from '@apollo/client';
 import { MockedResponse } from '@apollo/client/testing';
 import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from './types'
-  interface MockFn<Input, Query> {
+  interface MockFn<Variables, Query> {
     ({
-      input,
+      variables,
       result,
       error,
     }: {
-      input?: Input;
+      variables?: Variables;
       result?: Query;
       error?: ApolloError;
     }): MockedResponse<Query>;
@@ -58,7 +58,7 @@ import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from
   export const mockListPlanets: MockFn<
   ListPlanetsQueryVariables,
   ListPlanetsQuery
-> = ({ result, input, error }) => {
+> = ({ result, variables, error }) => {
   const planetMock = aPlanet();
 const locationMock = aLocation();
 
@@ -67,7 +67,7 @@ const locationMock = aLocation();
   return {
     request: {
       query: ListPlanetsDocument,
-      variables: { input },
+      variables,
     },
     result: {
       data: result != null ? result : ListPlanetsResult,

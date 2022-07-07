@@ -95,7 +95,7 @@ describe('tests', () => {
     it('should include the generic interface for the mock functions', async () => {
       const result = await produceExpectArg();
 
-      expect(result.content).toContain('interface MockFn<Input, Query');
+      expect(result.content).toContain('interface MockFn<Variables, Query');
     });
 
     it('should generate a valid query result', async () => {
