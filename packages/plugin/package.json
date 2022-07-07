@@ -14,8 +14,8 @@
     }
   },
   "scripts": {
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "tsup src/index.ts --format cjs,esm --dts --clean"
   },
   "keywords": [],
