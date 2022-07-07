@@ -10,6 +10,7 @@
     "generate": "pnpm --filter 'example' generate",
     "build": "pnpm --filter 'graphql-codegen-apollo-mocked-response' build && pnpm generate"
   },
+  "type": "module",
   "keywords": [],
   "author": "githop",
   "license": "ISC",
