@@ -1,0 +1,27 @@
+{
+  "name": "graphql-codegen-apollo-mocked-response",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "githop",
+  "license": "ISC",
+  "dependencies": {
+    "@graphql-codegen/plugin-helpers": "^2.4.2",
+    "indefinite": "^2.4.1",
+    "graphql": "^16.5.0"
+  },
+  "devDependencies": {
+    "@graphql-tools/graphql-file-loader": "^7.4.0",
+    "@graphql-tools/load": "^7.7.0",
+    "@types/indefinite": "^2.3.1"
+  },
+  "peerDependencies": {
+    "graphql": "^16.0.0"
+  }
+}

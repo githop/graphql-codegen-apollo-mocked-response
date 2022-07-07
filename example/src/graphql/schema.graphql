@@ -1,0 +1,41 @@
+type Location {
+  id: ID!
+  coordinates: String!
+  description: String
+}
+
+enum PlanetType {
+  Terrestrial
+  Gaseous
+}
+
+type Planet {
+  id: ID!
+  location: Location!
+  name: String
+  mass: Int
+  type: PlanetType
+}
+
+type Orbit {
+  location: Location!
+  id: ID!
+}
+
+input PlanetInput {
+  id: ID!
+}
+
+input ListPlanetsInput {
+  type: PlanetType
+}
+
+type Query {
+  listPlanets(input: ListPlanetsInput!): [Planet!]!
+  listLocations: [Location!]!
+  getPlanet(input: PlanetInput!): Planet
+}
+
+type Mutation {
+  createPlanet(input: PlanetInput): Boolean
+}

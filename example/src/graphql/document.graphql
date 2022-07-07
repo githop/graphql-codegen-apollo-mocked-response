@@ -1,0 +1,10 @@
+query ListPlanets($input: ListPlanetsInput!) {
+  listPlanets(input: $input) {
+    id
+    name
+    location {
+      id
+      coordinates
+    }
+  }
+}

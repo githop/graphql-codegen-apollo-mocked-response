@@ -1,0 +1,17 @@
+schema: 'src/graphql/schema.graphql'
+documents: 'src/graphql/document.graphql'
+generates: 
+  src/generated/types.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      enumsAsConst: true
+  src/generated/mocks.ts:
+    plugins:
+      - typescript-mock-data
+      - apollo-mocked-response  
+    config:
+      typesFile: './types.ts'
+      addTypename: true

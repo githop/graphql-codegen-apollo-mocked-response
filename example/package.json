@@ -1,0 +1,25 @@
+{
+  "name": "example",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "generate": "graphql-codegen"
+  },
+  "keywords": [],
+  "author": "githop",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/client": "^3.6.9",
+    "graphql": "^16.5.0",
+    "react": "^17.0.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^2.7.0",
+    "@graphql-codegen/typescript": "^2.6.0",
+    "@graphql-codegen/typescript-operations": "^2.4.3",
+    "@graphql-codegen/typescript-react-apollo": "^3.2.17",
+    "graphql-codegen-typescript-mock-data": "^2.2.3",
+    "graphql-codegen-apollo-mocked-response": "workspace:*"
+  }
+}

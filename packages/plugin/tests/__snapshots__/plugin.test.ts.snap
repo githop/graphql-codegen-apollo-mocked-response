@@ -1,0 +1,79 @@
+// Vitest Snapshot v1
+
+exports[`tests > config > should honor the addTypename config 1`] = `
+"
+  interface MockFn<Input, Query> {
+    ({
+      input,
+      result,
+      error,
+    }: {
+      input?: Input;
+      result?: Query;
+      error?: ApolloError;
+    }): MockedResponse<Query>;
+  }  
+  
+
+  export const mockListPlanets: MockFn<
+  ListPlanetsQueryVariables,
+  ListPlanetsQuery
+> = ({ result, input, error }) => {
+  const planetMock = aPlanet();
+const locationMock = aLocation();
+
+  const ListPlanetsResult: ListPlanetsQuery = { __typename: 'Query', listPlanets: [{ __typename: 'Planet', id: planetMock.id, name: planetMock.name, location: {  __typename: 'Location', id: locationMock.id, coordinates: locationMock.coordinates, }, }], }
+
+  return {
+    request: {
+      query: ListPlanetsDocument,
+      variables: { input },
+    },
+    result: {
+      data: result != null ? result : ListPlanetsResult,
+      error,
+    },
+  };
+};
+  "
+`;
+
+exports[`tests > plugin > should produce valid ouput 1`] = `
+"import { ApolloError } from '@apollo/client';
+import { MockedResponse } from '@apollo/client/testing';
+import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from './types'
+  interface MockFn<Input, Query> {
+    ({
+      input,
+      result,
+      error,
+    }: {
+      input?: Input;
+      result?: Query;
+      error?: ApolloError;
+    }): MockedResponse<Query>;
+  }  
+  
+
+  export const mockListPlanets: MockFn<
+  ListPlanetsQueryVariables,
+  ListPlanetsQuery
+> = ({ result, input, error }) => {
+  const planetMock = aPlanet();
+const locationMock = aLocation();
+
+  const ListPlanetsResult: ListPlanetsQuery = { listPlanets: [{ id: planetMock.id, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, }, }], }
+
+  return {
+    request: {
+      query: ListPlanetsDocument,
+      variables: { input },
+    },
+    result: {
+      data: result != null ? result : ListPlanetsResult,
+      error,
+    },
+  };
+};
+  "
+`;
