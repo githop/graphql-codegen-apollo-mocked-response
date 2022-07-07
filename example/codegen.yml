@@ -17,4 +17,4 @@ generates:
       - apollo-mocked-response  
     config:
       typesFile: './types.ts'
-      addTypename: true
+      addTypename: false

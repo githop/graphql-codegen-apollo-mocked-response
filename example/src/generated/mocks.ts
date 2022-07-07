@@ -27,11 +27,8 @@ export const aListPlanetsInput = (
   };
 };
 
-export const aLocation = (
-  overrides?: Partial<Location>
-): { __typename: 'Location' } & Location => {
+export const aLocation = (overrides?: Partial<Location>): Location => {
   return {
-    __typename: 'Location',
     coordinates:
       overrides && overrides.hasOwnProperty('coordinates')
         ? overrides.coordinates!
@@ -47,11 +44,8 @@ export const aLocation = (
   };
 };
 
-export const aMutation = (
-  overrides?: Partial<Mutation>
-): { __typename: 'Mutation' } & Mutation => {
+export const aMutation = (overrides?: Partial<Mutation>): Mutation => {
   return {
-    __typename: 'Mutation',
     createPlanet:
       overrides && overrides.hasOwnProperty('createPlanet')
         ? overrides.createPlanet!
@@ -59,11 +53,8 @@ export const aMutation = (
   };
 };
 
-export const anOrbit = (
-  overrides?: Partial<Orbit>
-): { __typename: 'Orbit' } & Orbit => {
+export const anOrbit = (overrides?: Partial<Orbit>): Orbit => {
   return {
-    __typename: 'Orbit',
     id:
       overrides && overrides.hasOwnProperty('id')
         ? overrides.id!
@@ -75,11 +66,8 @@ export const anOrbit = (
   };
 };
 
-export const aPlanet = (
-  overrides?: Partial<Planet>
-): { __typename: 'Planet' } & Planet => {
+export const aPlanet = (overrides?: Partial<Planet>): Planet => {
   return {
-    __typename: 'Planet',
     id:
       overrides && overrides.hasOwnProperty('id')
         ? overrides.id!
@@ -108,11 +96,8 @@ export const aPlanetInput = (overrides?: Partial<PlanetInput>): PlanetInput => {
   };
 };
 
-export const aQuery = (
-  overrides?: Partial<Query>
-): { __typename: 'Query' } & Query => {
+export const aQuery = (overrides?: Partial<Query>): Query => {
   return {
-    __typename: 'Query',
     getPlanet:
       overrides && overrides.hasOwnProperty('getPlanet')
         ? overrides.getPlanet!
@@ -148,14 +133,11 @@ export const mockListPlanets: MockFn<
   const locationMock = aLocation();
 
   const ListPlanetsResult: ListPlanetsQuery = {
-    __typename: 'Query',
     listPlanets: [
       {
-        __typename: 'Planet',
         id: planetMock.id,
         name: planetMock.name,
         location: {
-          __typename: 'Location',
           id: locationMock.id,
           coordinates: locationMock.coordinates,
         },

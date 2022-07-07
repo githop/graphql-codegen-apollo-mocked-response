@@ -1,7 +1,12 @@
 {
   "extends": "../base-tsconfig.json",
   "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "skipLibCheck": true,
     "moduleResolution": "node",
-    "jsx": "react"
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
+    "target": "ESNext"
   }
 }
