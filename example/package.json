@@ -6,6 +6,7 @@
   "scripts": {
     "generate": "graphql-codegen"
   },
+  "type": "module",
   "keywords": [],
   "author": "githop",
   "license": "ISC",
