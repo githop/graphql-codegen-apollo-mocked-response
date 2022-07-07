@@ -2,9 +2,15 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -31,7 +37,6 @@ export type Mutation = {
   createPlanet?: Maybe<Scalars['Boolean']>;
 };
 
-
 export type MutationCreatePlanetArgs = {
   input?: InputMaybe<PlanetInput>;
 };
@@ -57,7 +62,7 @@ export type PlanetInput = {
 
 export const PlanetType = {
   Gaseous: 'Gaseous',
-  Terrestrial: 'Terrestrial'
+  Terrestrial: 'Terrestrial',
 } as const;
 
 export type PlanetType = typeof PlanetType[keyof typeof PlanetType];
@@ -68,11 +73,9 @@ export type Query = {
   listPlanets: Array<Planet>;
 };
 
-
 export type QueryGetPlanetArgs = {
   input: PlanetInput;
 };
-
 
 export type QueryListPlanetsArgs = {
   input: ListPlanetsInput;
@@ -82,22 +85,28 @@ export type ListPlanetsQueryVariables = Exact<{
   input: ListPlanetsInput;
 }>;
 
-
-export type ListPlanetsQuery = { __typename?: 'Query', listPlanets: Array<{ __typename?: 'Planet', id: string, name?: string | null, location: { __typename?: 'Location', id: string, coordinates: string } }> };
-
+export type ListPlanetsQuery = {
+  __typename?: 'Query';
+  listPlanets: Array<{
+    __typename?: 'Planet';
+    id: string;
+    name?: string | null;
+    location: { __typename?: 'Location'; id: string; coordinates: string };
+  }>;
+};
 
 export const ListPlanetsDocument = gql`
-    query ListPlanets($input: ListPlanetsInput!) {
-  listPlanets(input: $input) {
-    id
-    name
-    location {
+  query ListPlanets($input: ListPlanetsInput!) {
+    listPlanets(input: $input) {
       id
-      coordinates
+      name
+      location {
+        id
+        coordinates
+      }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useListPlanetsQuery__
@@ -115,14 +124,35 @@ export const ListPlanetsDocument = gql`
  *   },
  * });
  */
-export function useListPlanetsQuery(baseOptions: Apollo.QueryHookOptions<ListPlanetsQuery, ListPlanetsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ListPlanetsQuery, ListPlanetsQueryVariables>(ListPlanetsDocument, options);
-      }
-export function useListPlanetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ListPlanetsQuery, ListPlanetsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ListPlanetsQuery, ListPlanetsQueryVariables>(ListPlanetsDocument, options);
-        }
+export function useListPlanetsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    ListPlanetsQuery,
+    ListPlanetsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<ListPlanetsQuery, ListPlanetsQueryVariables>(
+    ListPlanetsDocument,
+    options
+  );
+}
+export function useListPlanetsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    ListPlanetsQuery,
+    ListPlanetsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<ListPlanetsQuery, ListPlanetsQueryVariables>(
+    ListPlanetsDocument,
+    options
+  );
+}
 export type ListPlanetsQueryHookResult = ReturnType<typeof useListPlanetsQuery>;
-export type ListPlanetsLazyQueryHookResult = ReturnType<typeof useListPlanetsLazyQuery>;
-export type ListPlanetsQueryResult = Apollo.QueryResult<ListPlanetsQuery, ListPlanetsQueryVariables>;
+export type ListPlanetsLazyQueryHookResult = ReturnType<
+  typeof useListPlanetsLazyQuery
+>;
+export type ListPlanetsQueryResult = Apollo.QueryResult<
+  ListPlanetsQuery,
+  ListPlanetsQueryVariables
+>;
