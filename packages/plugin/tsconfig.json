@@ -2,11 +2,11 @@
   "extends": "../../base-tsconfig.json",
   "files": ["src/index.ts"],
   "compilerOptions": {
-    "rootDir": "src/",
+    "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "module": "CommonJS"
+    "module": "ESNext"
   }
 }
