@@ -1,5 +1,5 @@
 schema: 'src/graphql/schema.graphql'
-documents: 'src/graphql/document.graphql'
+documents: 'src/graphql/fragment-doc.graphql'
 hooks:
   beforeDone: 
     - prettier --write 'src/generated/**.ts' --single-quote

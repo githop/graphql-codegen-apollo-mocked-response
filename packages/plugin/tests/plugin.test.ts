@@ -72,10 +72,10 @@ describe('tests', () => {
   });
 
   describe('plugin', () => {
-    it('should produce valid ouput', async () => {
+    it('should produce valid output', async () => {
       const mocks = await produceExpectArg();
 
-      expect(concatPluginOuput(mocks)).toMatchSnapshot();
+      expect(concatPluginOutput(mocks)).toMatchSnapshot();
     });
 
     it('should generate type imports', async () => {
@@ -105,10 +105,27 @@ describe('tests', () => {
         'const ListPlanetsResult: ListPlanetsQuery = { listPlanets: [{ id: planetMock.id, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, }, }], }'
       );
     });
+
+    it.only('supports fragments', async () => {
+      const result = await produceExpectArg(undefined, {
+        documentFilename: 'fragment-doc.graphql',
+      });
+
+      // const reg = await produceExpectArg();
+
+      console.log(result);
+
+      expect(true).toBeFalsy();
+    });
   });
 });
 
-async function gatherFiles() {
+interface GraphQLFiles {
+  schemaFilename?: string;
+  documentFilename?: string;
+}
+
+async function gatherFiles({ schemaFilename, documentFilename }: GraphQLFiles) {
   const schema = await loadSchema(
     resolve(
       process.cwd(),
@@ -116,7 +133,7 @@ async function gatherFiles() {
       'example',
       'src',
       'graphql',
-      'schema.graphql'
+      schemaFilename || 'schema.graphql'
     ),
     {
       loaders: [new GraphQLFileLoader()],
@@ -130,7 +147,7 @@ async function gatherFiles() {
       'example',
       'src',
       'graphql',
-      'document.graphql'
+      documentFilename || 'document.graphql'
     ),
     {
       loaders: [new GraphQLFileLoader()],
@@ -140,15 +157,18 @@ async function gatherFiles() {
   return { schema, document };
 }
 
-function concatPluginOuput(pluginOutput: Types.PluginOutput) {
+function concatPluginOutput(pluginOutput: Types.PluginOutput) {
   if (isComplexPluginOutput(pluginOutput)) {
     return pluginOutput.prepend?.join('\n') + pluginOutput.content;
   }
   return pluginOutput;
 }
 
-async function produceExpectArg(config?: Partial<Config>) {
-  const { schema, document } = await gatherFiles();
+async function produceExpectArg(
+  config?: Partial<Config>,
+  files: GraphQLFiles = {}
+) {
+  const { schema, document } = await gatherFiles(files);
   const docs = [{ location: '', document: document[0].document }];
   const result = await plugin(schema, docs, config || {});
   return result as Types.ComplexPluginOutput;

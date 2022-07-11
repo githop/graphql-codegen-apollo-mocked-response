@@ -77,3 +77,43 @@ const locationMock = aLocation();
 };
   "
 `;
+
+exports[`tests > plugin > should produce valid output 1`] = `
+"import { ApolloError } from '@apollo/client';
+import { MockedResponse } from '@apollo/client/testing';
+import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from './types'
+  interface MockFn<Variables, Query> {
+    ({
+      variables,
+      result,
+      error,
+    }: {
+      variables?: Variables;
+      result?: Query;
+      error?: ApolloError;
+    }): MockedResponse<Query>;
+  }  
+  
+
+  export const mockListPlanets: MockFn<
+  ListPlanetsQueryVariables,
+  ListPlanetsQuery
+> = ({ result, variables, error }) => {
+  const planetMock = aPlanet();
+const locationMock = aLocation();
+
+  const ListPlanetsResult: ListPlanetsQuery = { listPlanets: [{ id: planetMock.id, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, }, }], }
+
+  return {
+    request: {
+      query: ListPlanetsDocument,
+      variables,
+    },
+    result: {
+      data: result != null ? result : ListPlanetsResult,
+      error,
+    },
+  };
+};
+  "
+`;

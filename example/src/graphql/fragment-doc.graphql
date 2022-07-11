@@ -1,0 +1,18 @@
+query ListPlanets($input: ListPlanetsInput!) {
+  listPlanets(input: $input) {
+    ...PlanetFields
+  }
+}
+
+fragment LocationFields on Location {
+  id
+  coordinates
+}
+
+fragment PlanetFields on Planet {
+  id
+  name
+  location {
+    ...LocationFields
+  }
+}

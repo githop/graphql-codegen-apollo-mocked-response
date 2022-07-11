@@ -95,17 +95,42 @@ export type ListPlanetsQuery = {
   }>;
 };
 
+export type LocationFieldsFragment = {
+  __typename?: 'Location';
+  id: string;
+  coordinates: string;
+};
+
+export type PlanetFieldsFragment = {
+  __typename?: 'Planet';
+  id: string;
+  name?: string | null;
+  location: { __typename?: 'Location'; id: string; coordinates: string };
+};
+
+export const LocationFieldsFragmentDoc = gql`
+  fragment LocationFields on Location {
+    id
+    coordinates
+  }
+`;
+export const PlanetFieldsFragmentDoc = gql`
+  fragment PlanetFields on Planet {
+    id
+    name
+    location {
+      ...LocationFields
+    }
+  }
+  ${LocationFieldsFragmentDoc}
+`;
 export const ListPlanetsDocument = gql`
   query ListPlanets($input: ListPlanetsInput!) {
     listPlanets(input: $input) {
-      id
-      name
-      location {
-        id
-        coordinates
-      }
+      ...PlanetFields
     }
   }
+  ${PlanetFieldsFragmentDoc}
 `;
 
 /**

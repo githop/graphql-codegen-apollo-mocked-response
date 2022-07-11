@@ -5,10 +5,11 @@ import {
   GraphQLCompositeType,
   visitWithTypeInfo,
   visit,
-  GraphQLOutputType,
   TypeNode,
   OperationDefinitionNode,
   DefinitionNode,
+  FragmentDefinitionNode,
+  SelectionNode,
 } from 'graphql';
 import a from 'indefinite';
 
@@ -44,20 +45,36 @@ function hasListType(typeNode: TypeNode): boolean {
 
 function buildQueryResult(
   transformedSelections: TransformedField[],
+  fragmentMap: FragmentMap,
   config: Config,
   types = new Set<string>()
-) {
+): readonly [string, readonly string[]] {
   let ret = '';
   for (const node of transformedSelections) {
     if (node == transformedSelections[0] && config.addTypename) {
-      ret += ` __typename: '${node.parentType}',`;
+      ret += ` __typename: '${node.parentType.name}',`;
     }
+
+    if (node.kind === ('FragmentSpread' as any)) {
+      const fragment = node as unknown as FragmentDefinitionNode;
+
+      const fields = fragmentMap.get(fragment.name.value)?.selectionSet!
+        .selections as any;
+
+      return buildQueryResult(fields, fragmentMap, config, types);
+    }
+
     if (node.selections == null) {
-      types.add(String(node.parentType));
-      const mockInstance = mockInstanceName(`${node.parentType}`);
+      types.add(node.parentType.name || '');
+      const mockInstance = mockInstanceName(node.parentType.name);
       ret += ` ${node.fieldName}: ${mockInstance}.${node.fieldName},`;
     } else {
-      const [fields] = buildQueryResult(node.selections, config, types);
+      const [fields] = buildQueryResult(
+        node.selections as any,
+        fragmentMap,
+        config,
+        types
+      );
       const embed =
         node.kind === 'connection' ? `[{${fields}}]` : `{ ${fields} }`;
       ret += ` ${node.fieldName}: ${embed}, `;
@@ -119,17 +136,19 @@ function mockInstanceName(type: string) {
   return type[0].toLowerCase() + type.substring(1) + 'Mock';
 }
 
+type FragmentMap = Map<string, FragmentDefinitionNode>;
+
 interface TransformedField {
   parentType: GraphQLCompositeType;
-  type: GraphQLOutputType;
   fieldName: string;
   // primitive are scalars and connections are just embedded objects
   kind: 'primitive' | 'connection';
-  selections?: Array<TransformedField>;
+  selections?: Array<TransformedField | FragmentDefinitionNode>;
 }
 
 function handleOperationResult(
   operation: OperationDefinitionNode,
+  fragmentMap: FragmentMap,
   config: Config
 ) {
   const functionName = `mock${operation.name?.value}`;
@@ -140,7 +159,11 @@ function handleOperationResult(
   const transformedFields =
     (operation.selectionSet.selections as unknown as TransformedField[]) ?? [];
 
-  const [resultFields, types] = buildQueryResult(transformedFields, config);
+  const [resultFields, types] = buildQueryResult(
+    transformedFields,
+    fragmentMap,
+    config
+  );
 
   const mocks = types
     .map((typeStr) => {
@@ -201,11 +224,8 @@ export const plugin: PluginFunction<Partial<Config>> = (
       Field: {
         leave(node) {
           const parentType = typeInfo.getParentType()!;
-          const type = typeInfo.getType()!;
-
           const transformed: TransformedField = {
             parentType,
-            type,
             fieldName: node.name.value,
             selections: node.selectionSet?.selections as any[],
             kind: hasListType(typeInfo.getFieldDef()!.astNode!.type)
@@ -219,18 +239,22 @@ export const plugin: PluginFunction<Partial<Config>> = (
   );
 
   const resolvedConfig = getConfig(config);
+  const fragmentMap: FragmentMap = new Map();
+  const operations = [];
 
-  function isOperationDefinitionPredicate(
-    node: DefinitionNode,
-    index: number,
-    array: readonly DefinitionNode[]
-  ): node is OperationDefinitionNode {
-    return 'kind' in node && node.kind === 'OperationDefinition';
+  for (const node of result.definitions) {
+    if (node.kind === 'OperationDefinition') {
+      operations.push(node);
+    }
+
+    if (node.kind === 'FragmentDefinition') {
+      fragmentMap.set(node.name.value, node);
+    }
   }
 
-  const templateVars = result.definitions
-    .filter(isOperationDefinitionPredicate)
-    .map((operation) => handleOperationResult(operation, resolvedConfig));
+  const templateVars = operations.map((operation) =>
+    handleOperationResult(operation, fragmentMap, resolvedConfig)
+  );
 
   const typeImports = templateVars.flatMap(({ imports }) => imports);
 
