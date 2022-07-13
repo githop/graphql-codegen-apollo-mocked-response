@@ -130,19 +130,9 @@ export const mockListPlanets: MockFn<
   ListPlanetsQuery
 > = ({ result, variables, error }) => {
   const planetMock = aPlanet();
-  const locationMock = aLocation();
 
   const ListPlanetsResult: ListPlanetsQuery = {
-    listPlanets: [
-      {
-        id: planetMock.id,
-        name: planetMock.name,
-        location: {
-          id: locationMock.id,
-          coordinates: locationMock.coordinates,
-        },
-      },
-    ],
+    listPlanets: [{ id: planetMock.id, type: planetMock.type }],
   };
 
   return {

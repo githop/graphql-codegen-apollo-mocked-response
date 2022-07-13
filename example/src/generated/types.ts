@@ -90,6 +90,7 @@ export type ListPlanetsQuery = {
   listPlanets: Array<{
     __typename?: 'Planet';
     id: string;
+    type?: PlanetType | null;
     name?: string | null;
     location: { __typename?: 'Location'; id: string; coordinates: string };
   }>;
@@ -101,13 +102,24 @@ export type LocationFieldsFragment = {
   coordinates: string;
 };
 
-export type PlanetFieldsFragment = {
+export type PlanetBaseFragment = {
   __typename?: 'Planet';
   id: string;
+  type?: PlanetType | null;
+};
+
+export type PlanetFieldsFragment = {
+  __typename?: 'Planet';
   name?: string | null;
   location: { __typename?: 'Location'; id: string; coordinates: string };
 };
 
+export const PlanetBaseFragmentDoc = gql`
+  fragment PlanetBase on Planet {
+    id
+    type
+  }
+`;
 export const LocationFieldsFragmentDoc = gql`
   fragment LocationFields on Location {
     id
@@ -116,7 +128,6 @@ export const LocationFieldsFragmentDoc = gql`
 `;
 export const PlanetFieldsFragmentDoc = gql`
   fragment PlanetFields on Planet {
-    id
     name
     location {
       ...LocationFields
@@ -127,9 +138,11 @@ export const PlanetFieldsFragmentDoc = gql`
 export const ListPlanetsDocument = gql`
   query ListPlanets($input: ListPlanetsInput!) {
     listPlanets(input: $input) {
+      ...PlanetBase
       ...PlanetFields
     }
   }
+  ${PlanetBaseFragmentDoc}
   ${PlanetFieldsFragmentDoc}
 `;
 

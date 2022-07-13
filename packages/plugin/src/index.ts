@@ -7,9 +7,9 @@ import {
   visit,
   TypeNode,
   OperationDefinitionNode,
-  DefinitionNode,
   FragmentDefinitionNode,
-  SelectionNode,
+  SelectionSetNode,
+  FragmentSpreadNode,
 } from 'graphql';
 import a from 'indefinite';
 
@@ -43,6 +43,44 @@ function hasListType(typeNode: TypeNode): boolean {
   return hasListType(typeNode.type);
 }
 
+type Foo =
+  | Omit<TransformedField, 'selections'>
+  | FragmentSpreadNode
+  | TransformedField;
+
+function walkSelections(transformedFields: Foo[], fragmentMap: FragmentMap) {
+  let ret = '';
+
+  for (const tf of transformedFields) {
+    if (
+      ('selections' in tf && tf.selections != null) ||
+      tf.kind === 'FragmentSpread'
+    ) {
+      let selections = [];
+
+      if (tf.kind === 'FragmentSpread') {
+        selections = fragmentMap.get(tf.name.value)!.selectionSet
+          .selections as any;
+      } else {
+        selections = tf.selections as any;
+      }
+
+      const foo = walkSelections(selections as any, fragmentMap);
+
+      const embed =
+        tf.kind === 'connection' || tf.kind === 'FragmentSpread'
+          ? `[{${foo}}]`
+          : `{ ${foo} }`;
+      ret += ` ${(tf as any).fieldName}: ${embed}, `;
+    } else {
+      const mockInstance = mockInstanceName(tf.parentTypename);
+      ret += ` ${tf.fieldName}: ${mockInstance}.${tf.fieldName},`;
+    }
+  }
+
+  return ret;
+}
+
 function buildQueryResult(
   transformedSelections: TransformedField[],
   fragmentMap: FragmentMap,
@@ -52,7 +90,7 @@ function buildQueryResult(
   let ret = '';
   for (const node of transformedSelections) {
     if (node == transformedSelections[0] && config.addTypename) {
-      ret += ` __typename: '${node.parentType.name}',`;
+      ret += ` __typename: '${node.parentTypename}',`;
     }
 
     if (node.kind === ('FragmentSpread' as any)) {
@@ -65,8 +103,8 @@ function buildQueryResult(
     }
 
     if (node.selections == null) {
-      types.add(node.parentType.name || '');
-      const mockInstance = mockInstanceName(node.parentType.name);
+      types.add(node.parentTypename);
+      const mockInstance = mockInstanceName(node.parentTypename);
       ret += ` ${node.fieldName}: ${mockInstance}.${node.fieldName},`;
     } else {
       const [fields] = buildQueryResult(
@@ -139,11 +177,11 @@ function mockInstanceName(type: string) {
 type FragmentMap = Map<string, FragmentDefinitionNode>;
 
 interface TransformedField {
-  parentType: GraphQLCompositeType;
+  parentTypename: string;
   fieldName: string;
   // primitive are scalars and connections are just embedded objects
   kind: 'primitive' | 'connection';
-  selections?: Array<TransformedField | FragmentDefinitionNode>;
+  selections?: Array<TransformedField | FragmentSpreadNode>;
 }
 
 function handleOperationResult(
@@ -164,6 +202,8 @@ function handleOperationResult(
     fragmentMap,
     config
   );
+
+  const huh = walkSelections(transformedFields, fragmentMap);
 
   const mocks = types
     .map((typeStr) => {
@@ -223,14 +263,14 @@ export const plugin: PluginFunction<Partial<Config>> = (
     visitWithTypeInfo(typeInfo, {
       Field: {
         leave(node) {
-          const parentType = typeInfo.getParentType()!;
+          const parentTypename = typeInfo.getParentType()!.name;
           const transformed: TransformedField = {
-            parentType,
+            parentTypename,
             fieldName: node.name.value,
-            selections: node.selectionSet?.selections as any[],
             kind: hasListType(typeInfo.getFieldDef()!.astNode!.type)
               ? 'connection'
               : 'primitive',
+            selections: node.selectionSet?.selections as any[],
           };
           return transformed;
         },
@@ -239,8 +279,9 @@ export const plugin: PluginFunction<Partial<Config>> = (
   );
 
   const resolvedConfig = getConfig(config);
-  const fragmentMap: FragmentMap = new Map();
+
   const operations = [];
+  const fragmentMap: FragmentMap = new Map();
 
   for (const node of result.definitions) {
     if (node.kind === 'OperationDefinition') {
@@ -274,3 +315,11 @@ export const plugin: PluginFunction<Partial<Config>> = (
       .join('\n'),
   };
 };
+
+function prettyPrint(thing: any, label?: string) {
+  if (label) {
+    console.log(label, JSON.stringify(thing, null, 2));
+    return;
+  }
+  console.log(JSON.stringify(thing, null, 2));
+}
