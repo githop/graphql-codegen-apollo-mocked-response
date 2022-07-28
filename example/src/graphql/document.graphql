@@ -8,3 +8,14 @@ query ListPlanets($input: ListPlanetsInput!) {
     }
   }
 }
+
+mutation CreatePlanet($input: PlanetInput!) {
+  createPlanet(input: $input) {
+    id
+    name
+    location {
+      id
+      coordinates
+    }
+  }
+}

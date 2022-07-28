@@ -128,17 +128,15 @@ interface TransformedField {
   selections?: Array<TransformedField>;
 }
 
-function handleOperationResult(
-  operation: OperationDefinitionNode,
-  config: Config
-) {
-  const functionName = `mock${operation.name?.value}`;
-  const queryResultType = `${operation.name?.value}Query`;
-  const queryVarsType = `${operation.name?.value}QueryVariables`;
-  const documentNode = `${operation.name?.value}Document`;
+function handleOperationResult(node: OperationDefinitionNode, config: Config) {
+  const operation = node.operation[0].toUpperCase() + node.operation.slice(1);
+  const functionName = `mock${node.name?.value}`;
+  const queryResultType = `${node.name?.value}${operation}`;
+  const queryVarsType = `${node.name?.value}${operation}Variables`;
+  const documentNode = `${node.name?.value}Document`;
 
   const transformedFields =
-    (operation.selectionSet.selections as unknown as TransformedField[]) ?? [];
+    (node.selectionSet.selections as unknown as TransformedField[]) ?? [];
 
   const [resultFields, types] = buildQueryResult(transformedFields, config);
 
@@ -150,7 +148,7 @@ function handleOperationResult(
     })
     .join('\n');
 
-  const queryResultVar = `${operation.name?.value}Result`;
+  const queryResultVar = `${node.name?.value}Result`;
   const queryResult = `const ${queryResultVar}: ${queryResultType} = {${resultFields}}`;
   const templateVars = {
     functionName,
