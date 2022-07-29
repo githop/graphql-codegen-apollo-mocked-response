@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { describe, expect, it } from 'vitest';
-import { QueryHost } from '../QueryHost';
+import { MutationHost } from '../MutationHost';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing/react/MockedProvider';
 import { mockCreatePlanet } from '../../generated/mocks';
@@ -13,7 +13,7 @@ describe('MutationHost', () => {
   const Component = (mocks?: any[]) => {
     return render(
       <MockedProvider mocks={mocks || []}>
-        <QueryHost />
+        <MutationHost />
       </MockedProvider>
     );
   };
@@ -38,6 +38,8 @@ describe('MutationHost', () => {
 
     fireEvent.click(btn);
 
-    expect(screen.getByText('1243'));
+    expect(await screen.findByText('123'));
+    expect(screen.getByText('Planet awesome'));
+    expect(screen.getByText('where you want to be'));
   });
 });
