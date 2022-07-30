@@ -35,13 +35,35 @@ const locationMock = aLocation();
     },
   };
 };
+  
+
+  export const mockCreatePlanet: MockFn<
+  CreatePlanetMutationVariables,
+  CreatePlanetMutation
+> = ({ result, variables, error }) => {
+  const planetMock = aPlanet();
+const locationMock = aLocation();
+
+  const CreatePlanetResult: CreatePlanetMutation = { __typename: 'Mutation', createPlanet: {  __typename: 'Planet', id: planetMock.id, name: planetMock.name, location: {  __typename: 'Location', id: locationMock.id, coordinates: locationMock.coordinates, },  }, }
+
+  return {
+    request: {
+      query: CreatePlanetDocument,
+      variables,
+    },
+    result: {
+      data: result != null ? result : CreatePlanetResult,
+      error,
+    },
+  };
+};
   "
 `;
 
 exports[`tests > plugin > should produce valid ouput 1`] = `
 "import { ApolloError } from '@apollo/client';
 import { MockedResponse } from '@apollo/client/testing';
-import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from './types'
+import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables, CreatePlanetDocument, CreatePlanetMutation, CreatePlanetMutationVariables } from './types'
   interface MockFn<Variables, Query> {
     ({
       variables,
@@ -71,6 +93,28 @@ const locationMock = aLocation();
     },
     result: {
       data: result != null ? result : ListPlanetsResult,
+      error,
+    },
+  };
+};
+  
+
+  export const mockCreatePlanet: MockFn<
+  CreatePlanetMutationVariables,
+  CreatePlanetMutation
+> = ({ result, variables, error }) => {
+  const planetMock = aPlanet();
+const locationMock = aLocation();
+
+  const CreatePlanetResult: CreatePlanetMutation = { createPlanet: {  id: planetMock.id, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, },  }, }
+
+  return {
+    request: {
+      query: CreatePlanetDocument,
+      variables,
+    },
+    result: {
+      data: result != null ? result : CreatePlanetResult,
       error,
     },
   };
