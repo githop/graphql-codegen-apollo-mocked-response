@@ -1,6 +1,6 @@
 {
   "extends": "../../base-tsconfig.json",
-  "files": ["src/index.ts"],
+  "files": ["src/index.ts", "src/visitor.ts"],
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",

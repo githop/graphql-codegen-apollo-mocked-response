@@ -21,10 +21,25 @@ describe('QueryHost', () => {
   it('does things', async () => {
     const mocks = mockListPlanets({
       variables: { input: { type: 'Gaseous' } },
+      result: {
+        listPlanets: [
+          {
+            id: '123',
+            type: 'Gaseous',
+            mass: 1348,
+            name: 'foo',
+            location: {
+              id: '456',
+              coordinates: 'here',
+            },
+          },
+        ],
+      },
     });
+    // console.log('wtf??', JSON.stringify(mocks.result, null, 2));
 
     const { findByText } = Component([mocks]);
 
-    expect(await findByText('vero'));
+    expect(await findByText('1348'));
   });
 });

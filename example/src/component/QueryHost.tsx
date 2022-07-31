@@ -19,6 +19,7 @@ export function QueryHost() {
         return (
           <div key={planetFields.id}>
             <p>{planetFields.name}</p>
+            <p>{planetFields.mass}</p>
             <p>{planetFields.location.coordinates}</p>
           </div>
         );

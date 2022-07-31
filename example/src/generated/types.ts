@@ -89,6 +89,7 @@ export type ListPlanetsQuery = {
   __typename?: 'Query';
   listPlanets: Array<{
     __typename?: 'Planet';
+    mass?: number | null;
     id: string;
     type?: PlanetType | null;
     name?: string | null;
@@ -139,6 +140,7 @@ export const ListPlanetsDocument = gql`
   query ListPlanets($input: ListPlanetsInput!) {
     listPlanets(input: $input) {
       ...PlanetBase
+      mass
       ...PlanetFields
     }
   }

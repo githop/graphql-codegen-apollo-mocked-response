@@ -1,9 +1,9 @@
 schema: 'src/graphql/schema.graphql'
-documents: 'src/graphql/fragment-doc.graphql'
+documents: 'src/graphql/document.graphql'
 hooks:
-  beforeDone: 
+  beforeDone:
     - prettier --write 'src/generated/**.ts' --single-quote
-generates: 
+generates:
   src/generated/types.ts:
     plugins:
       - typescript
@@ -14,7 +14,7 @@ generates:
   src/generated/mocks.ts:
     plugins:
       - typescript-mock-data
-      - apollo-mocked-response  
+      - apollo-mocked-response
     config:
       typesFile: './types.ts'
       addTypename: false

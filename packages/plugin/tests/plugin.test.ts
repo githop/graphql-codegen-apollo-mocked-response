@@ -102,20 +102,8 @@ describe('tests', () => {
       const result = await produceExpectArg();
 
       expect(result.content).toContain(
-        'const ListPlanetsResult: ListPlanetsQuery = { listPlanets: [{ id: planetMock.id, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, }, }], }'
+        'const ListPlanetsResult: ListPlanetsQuery = { listPlanets: [{ id: planetMock.id, type: planetMock.type, mass: planetMock.mass, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, },}],}'
       );
-    });
-
-    it.only('supports fragments', async () => {
-      const result = await produceExpectArg(undefined, {
-        documentFilename: 'fragment-doc.graphql',
-      });
-
-      // const reg = await produceExpectArg();
-
-      // console.log(result);
-
-      expect(true).toBeFalsy();
     });
   });
 });

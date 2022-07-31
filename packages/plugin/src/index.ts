@@ -1,17 +1,15 @@
 import { PluginFunction } from '@graphql-codegen/plugin-helpers';
-import {
-  concatAST,
-  TypeInfo,
-  GraphQLCompositeType,
-  visitWithTypeInfo,
-  visit,
-  TypeNode,
-  OperationDefinitionNode,
-  FragmentDefinitionNode,
-  SelectionSetNode,
-  FragmentSpreadNode,
-} from 'graphql';
+import { concatAST } from 'graphql';
 import a from 'indefinite';
+import {
+  isTransformedField,
+  isTransformedFragment,
+  isTransformedOperation,
+  TransformedFragment,
+  TransformedOperation,
+  TransformedSelections,
+  visitor,
+} from './visitor';
 
 const APOLLO_IMPORTS = [
   "import { ApolloError } from '@apollo/client';",
@@ -31,95 +29,6 @@ const MOCK_FN_INTERFACE = `
     }): MockedResponse<Query>;
   }  
   `;
-
-function hasListType(typeNode: TypeNode): boolean {
-  if (typeNode.kind === 'ListType') {
-    return true;
-  }
-
-  if (typeNode.kind === 'NamedType') {
-    return false;
-  }
-  return hasListType(typeNode.type);
-}
-
-type Foo =
-  | Omit<TransformedField, 'selections'>
-  | FragmentSpreadNode
-  | TransformedField;
-
-function walkSelections(transformedFields: Foo[], fragmentMap: FragmentMap) {
-  let ret = '';
-
-  for (const tf of transformedFields) {
-    if (
-      ('selections' in tf && tf.selections != null) ||
-      tf.kind === 'FragmentSpread'
-    ) {
-      let selections = [];
-
-      if (tf.kind === 'FragmentSpread') {
-        selections = fragmentMap.get(tf.name.value)!.selectionSet
-          .selections as any;
-      } else {
-        selections = tf.selections as any;
-      }
-
-      const foo = walkSelections(selections as any, fragmentMap);
-
-      const embed =
-        tf.kind === 'connection' || tf.kind === 'FragmentSpread'
-          ? `[{${foo}}]`
-          : `{ ${foo} }`;
-      ret += ` ${(tf as any).fieldName}: ${embed}, `;
-    } else {
-      const mockInstance = mockInstanceName(tf.parentTypename);
-      ret += ` ${tf.fieldName}: ${mockInstance}.${tf.fieldName},`;
-    }
-  }
-
-  return ret;
-}
-
-function buildQueryResult(
-  transformedSelections: TransformedField[],
-  fragmentMap: FragmentMap,
-  config: Config,
-  types = new Set<string>()
-): readonly [string, readonly string[]] {
-  let ret = '';
-  for (const node of transformedSelections) {
-    if (node == transformedSelections[0] && config.addTypename) {
-      ret += ` __typename: '${node.parentTypename}',`;
-    }
-
-    if (node.kind === ('FragmentSpread' as any)) {
-      const fragment = node as unknown as FragmentDefinitionNode;
-
-      const fields = fragmentMap.get(fragment.name.value)?.selectionSet!
-        .selections as any;
-
-      return buildQueryResult(fields, fragmentMap, config, types);
-    }
-
-    if (node.selections == null) {
-      types.add(node.parentTypename);
-      const mockInstance = mockInstanceName(node.parentTypename);
-      ret += ` ${node.fieldName}: ${mockInstance}.${node.fieldName},`;
-    } else {
-      const [fields] = buildQueryResult(
-        node.selections as any,
-        fragmentMap,
-        config,
-        types
-      );
-      const embed =
-        node.kind === 'connection' ? `[{${fields}}]` : `{ ${fields} }`;
-      ret += ` ${node.fieldName}: ${embed}, `;
-    }
-  }
-  return [ret, [...types]] as const;
-}
 
 interface BuildMockFn {
   queryResultType: string;
@@ -174,46 +83,87 @@ function mockInstanceName(type: string) {
   return type[0].toLowerCase() + type.substring(1) + 'Mock';
 }
 
-type FragmentMap = Map<string, FragmentDefinitionNode>;
+type FragmentMap = Map<string, TransformedFragment>;
 
-interface TransformedField {
-  parentTypename: string;
-  fieldName: string;
-  // primitive are scalars and connections are just embedded objects
-  kind: 'primitive' | 'connection';
-  selections?: Array<TransformedField | FragmentSpreadNode>;
+function buildResultStr(
+  transformedFields: TransformedSelections,
+  fragmentMap: FragmentMap,
+  addTypename: boolean
+): string {
+  let ret = '';
+  for (const node of transformedFields) {
+    if (isTransformedField(node)) {
+      if (node.selections == null) {
+        const mockInstance = mockInstanceName(node.parentTypename);
+        ret += ` ${node.fieldName}: ${mockInstance}.${node.fieldName},`;
+      } else {
+        const fieldsStr = buildResultStr(
+          node.selections,
+          fragmentMap,
+          addTypename
+        );
+        const embed =
+          node.kind === 'connection' ? `[{${fieldsStr}}]` : `{ ${fieldsStr} }`;
+        ret += ` ${node.fieldName}: ${embed},`;
+      }
+    } else {
+      const fragment = fragmentMap.get(node.name);
+      const part = buildResultStr(
+        fragment?.selections!,
+        fragmentMap,
+        addTypename
+      );
+      ret += part;
+    }
+  }
+  return ret;
+}
+
+function collectTypes(
+  transformedFields: TransformedSelections,
+  fragmentMap: FragmentMap,
+  types = new Set<string>()
+) {
+  for (const field of transformedFields) {
+    if (isTransformedField(field)) {
+      if (field.selections == null) {
+        types.add(field.parentTypename);
+      } else {
+        collectTypes(field.selections, fragmentMap, types);
+      }
+    } else {
+      const fragment = fragmentMap.get(field.name);
+      collectTypes(fragment?.selections!, fragmentMap, types);
+    }
+  }
+
+  return [...types];
 }
 
 function handleOperationResult(
-  operation: OperationDefinitionNode,
+  operation: TransformedOperation,
   fragmentMap: FragmentMap,
-  config: Config
+  { prefix, addTypename }: Config
 ) {
-  const functionName = `mock${operation.name?.value}`;
-  const queryResultType = `${operation.name?.value}Query`;
-  const queryVarsType = `${operation.name?.value}QueryVariables`;
-  const documentNode = `${operation.name?.value}Document`;
+  const functionName = `mock${operation.name}`;
+  const queryResultType = `${operation.name}Query`;
+  const queryVarsType = `${operation.name}QueryVariables`;
+  const documentNode = `${operation.name}Document`;
 
-  const transformedFields =
-    (operation.selectionSet.selections as unknown as TransformedField[]) ?? [];
+  const transformed = operation.selectionSet.selections ?? [];
 
-  const [resultFields, types] = buildQueryResult(
-    transformedFields,
-    fragmentMap,
-    config
-  );
-
-  const huh = walkSelections(transformedFields, fragmentMap);
+  const types = collectTypes(transformed, fragmentMap);
+  const resultFields = buildResultStr(transformed, fragmentMap, addTypename);
 
   const mocks = types
     .map((typeStr) => {
-      const mockFn = mockFnName(typeStr, config.prefix);
+      const mockFn = mockFnName(typeStr, prefix);
       const mockInstance = mockInstanceName(typeStr);
       return `const ${mockInstance} = ${mockFn}();`;
     })
     .join('\n');
 
-  const queryResultVar = `${operation.name?.value}Result`;
+  const queryResultVar = `${operation.name}Result`;
   const queryResult = `const ${queryResultVar}: ${queryResultType} = {${resultFields}}`;
   const templateVars = {
     functionName,
@@ -256,40 +206,20 @@ export const plugin: PluginFunction<Partial<Config>> = (
   config
 ) => {
   const docsAST = concatAST(documents.map((v) => v.document!));
-  const typeInfo = new TypeInfo(schema);
 
-  const result = visit(
-    docsAST,
-    visitWithTypeInfo(typeInfo, {
-      Field: {
-        leave(node) {
-          const parentTypename = typeInfo.getParentType()!.name;
-          const transformed: TransformedField = {
-            parentTypename,
-            fieldName: node.name.value,
-            kind: hasListType(typeInfo.getFieldDef()!.astNode!.type)
-              ? 'connection'
-              : 'primitive',
-            selections: node.selectionSet?.selections as any[],
-          };
-          return transformed;
-        },
-      },
-    })
-  );
-
+  const result = visitor(docsAST, schema);
   const resolvedConfig = getConfig(config);
 
-  const operations = [];
+  const operations: TransformedOperation[] = [];
   const fragmentMap: FragmentMap = new Map();
 
   for (const node of result.definitions) {
-    if (node.kind === 'OperationDefinition') {
+    if (isTransformedOperation(node)) {
       operations.push(node);
     }
 
-    if (node.kind === 'FragmentDefinition') {
-      fragmentMap.set(node.name.value, node);
+    if (isTransformedFragment(node)) {
+      fragmentMap.set(node.name, node);
     }
   }
 
