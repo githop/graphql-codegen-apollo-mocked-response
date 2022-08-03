@@ -36,7 +36,6 @@ describe('QueryHost', () => {
         ],
       },
     });
-    // console.log('wtf??', JSON.stringify(mocks.result, null, 2));
 
     const { findByText } = Component([mocks]);
 

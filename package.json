@@ -20,6 +20,6 @@
     "@vitest/ui": "^0.19.1",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4",
-    "vitest": "^0.17.0"
+    "vitest": "^0.20.3"
   }
 }
