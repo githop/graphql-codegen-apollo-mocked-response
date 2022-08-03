@@ -12,49 +12,73 @@ import {
   OperationDefinitionNode,
 } from 'graphql';
 
-export interface TransformedField {
+interface BaseField {
   parentTypename: string;
   fieldName: string;
   // primitive are scalars and connections are just embedded objects
   kind: 'primitive' | 'connection';
-  selections?: TransformedSelections;
 }
 
-export type TransformedSelections = Array<
-  TransformedField | TransformedFragmentSpread
->;
+export type VisitedSelections = Array<VisitedField | VisitedFragmentSpread>;
 
-export interface TransformedFragmentSpread {
+export interface VisitedField extends BaseField {
+  selections?: VisitedSelections;
+}
+
+export interface VisitedFragmentSpread {
   name: string;
   kind: FragmentSpreadNode['kind'];
 }
 
-export interface TransformedFragment {
+export interface VisitedFragment {
   name: string;
   kind: FragmentDefinitionNode['kind'];
-  type: string;
-  selections: TransformedSelections;
+  selections: VisitedSelections;
 }
 
-export interface TransformedSelectionSet {
+export interface VisitedSelectionSet {
   kind: SelectionSetNode['kind'];
-  selections: TransformedSelections;
+  selections: VisitedSelections;
 }
 
-export interface TransformedOperation {
+export interface VisitedOperation {
   kind: OperationDefinitionNode['kind'];
   operation: OperationDefinitionNode['operation'];
-  selectionSet: TransformedSelectionSet;
+  selectionSet: VisitedSelectionSet;
   name: string;
 }
 
-export function isTransformedField(node: any): node is TransformedField {
-  return (
-    ('kind' in node && node.kind === 'primitive') || node.kind === 'connection'
-  );
+export interface InlinedFragmentField {
+  kind: 'FragmentSpread';
+  name: 'string';
+  selections: Array<VisitedField>;
 }
 
-export function isTransformedFragment(node: any): node is TransformedFragment {
+export type InlinedSelections = Array<VisitedField | InlinedFragmentField>;
+
+export interface InlinedField extends BaseField {
+  selections: InlinedSelections;
+}
+
+export interface InlinedSelectionSet {
+  kind: SelectionSetNode['kind'];
+  selections: InlinedSelections;
+}
+
+export interface TargetField extends BaseField {
+  selections?: TargetField[];
+}
+
+export interface TargetSelectionSet {
+  kind: SelectionSetNode['kind'];
+  selections: TargetField[];
+}
+
+export function isTransformedField(node: any): node is VisitedField {
+  return 'parentTypename' in node && 'fieldName' in node && 'kind' in node;
+}
+
+export function isTransformedFragment(node: any): node is VisitedFragment {
   return (
     'kind' in node &&
     node.kind === Kind.FRAGMENT_DEFINITION &&
@@ -62,15 +86,17 @@ export function isTransformedFragment(node: any): node is TransformedFragment {
   );
 }
 
-export function isTransformedOperation(
-  node: any
-): node is TransformedOperation {
+export function isTransformedOperation(node: any): node is VisitedOperation {
   return (
     'kind' in node &&
     node.kind === Kind.OPERATION_DEFINITION &&
     'name' in node &&
     typeof node.name === 'string'
   );
+}
+
+export function createSelectionSet(): VisitedSelectionSet {
+  return { kind: Kind.SELECTION_SET, selections: [] };
 }
 
 export function hasListType(typeNode: TypeNode): boolean {
@@ -92,7 +118,7 @@ export function visitor(ast: DocumentNode, schema: GraphQLSchema) {
     visitWithTypeInfo(typeInfo, {
       FragmentSpread: {
         leave(node) {
-          const transformedFragmentSpread: TransformedFragmentSpread = {
+          const transformedFragmentSpread: VisitedFragmentSpread = {
             kind: node.kind,
             name: node.name as any,
           };
@@ -101,10 +127,9 @@ export function visitor(ast: DocumentNode, schema: GraphQLSchema) {
       },
       FragmentDefinition: {
         leave(node) {
-          const transformedFragment: TransformedFragment = {
+          const transformedFragment: VisitedFragment = {
             name: node.name as any,
             kind: node.kind,
-            type: node.typeCondition.name as any,
             selections: node.selectionSet.selections as any,
           };
           return transformedFragment;
@@ -112,7 +137,7 @@ export function visitor(ast: DocumentNode, schema: GraphQLSchema) {
       },
       OperationDefinition: {
         leave(node) {
-          const transformedOperation: TransformedOperation = {
+          const transformedOperation: VisitedOperation = {
             kind: node.kind,
             operation: node.operation,
             name: node.name as any,
@@ -123,7 +148,7 @@ export function visitor(ast: DocumentNode, schema: GraphQLSchema) {
       },
       SelectionSet: {
         leave(node) {
-          const transformedSelectionSet: TransformedSelectionSet = {
+          const transformedSelectionSet: VisitedSelectionSet = {
             kind: node.kind,
             selections: node.selections as any,
           };
@@ -133,7 +158,7 @@ export function visitor(ast: DocumentNode, schema: GraphQLSchema) {
       Field: {
         leave(node) {
           const parentTypename = typeInfo.getParentType()!.name;
-          const transformed: TransformedField = {
+          const transformed: VisitedField = {
             parentTypename,
             fieldName: node.name as any,
             kind: hasListType(typeInfo.getFieldDef()!.astNode!.type)

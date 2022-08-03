@@ -1,13 +1,17 @@
 import { PluginFunction } from '@graphql-codegen/plugin-helpers';
-import { concatAST } from 'graphql';
+import { concatAST, Kind } from 'graphql';
 import a from 'indefinite';
 import {
+  InlinedSelectionSet,
   isTransformedField,
   isTransformedFragment,
   isTransformedOperation,
-  TransformedFragment,
-  TransformedOperation,
-  TransformedSelections,
+  TargetField,
+  TargetSelectionSet,
+  VisitedFragment,
+  VisitedOperation,
+  VisitedSelections,
+  VisitedSelectionSet,
   visitor,
 } from './visitor';
 
@@ -83,65 +87,113 @@ function mockInstanceName(type: string) {
   return type[0].toLowerCase() + type.substring(1) + 'Mock';
 }
 
-type FragmentMap = Map<string, TransformedFragment>;
+interface BuildResultsStr {
+  selections: TargetField[];
+  addTypename: boolean;
+}
 
-function buildResultStr(
-  transformedFields: TransformedSelections,
-  fragmentMap: FragmentMap,
-  addTypename: boolean
-): string {
+function buildResultStr({ selections, addTypename }: BuildResultsStr): string {
   let ret = '';
-  for (const node of transformedFields) {
-    if (isTransformedField(node)) {
-      if (node.selections == null) {
-        const mockInstance = mockInstanceName(node.parentTypename);
-        ret += ` ${node.fieldName}: ${mockInstance}.${node.fieldName},`;
-      } else {
-        const fieldsStr = buildResultStr(
-          node.selections,
-          fragmentMap,
-          addTypename
-        );
-        const embed =
-          node.kind === 'connection' ? `[{${fieldsStr}}]` : `{ ${fieldsStr} }`;
-        ret += ` ${node.fieldName}: ${embed},`;
-      }
+  for (const node of selections) {
+    if (node === selections[0] && addTypename) {
+      ret += ` __typename: '${node.parentTypename}',`;
+    }
+
+    if (node.selections == null) {
+      const mockInstance = mockInstanceName(node.parentTypename);
+      ret += ` ${node.fieldName}: ${mockInstance}.${node.fieldName},`;
     } else {
-      const fragment = fragmentMap.get(node.name);
-      const part = buildResultStr(
-        fragment?.selections!,
-        fragmentMap,
-        addTypename
-      );
-      ret += part;
+      const fieldsStr = buildResultStr({
+        selections: node.selections,
+        addTypename,
+      });
+      const embed =
+        node.kind === 'connection' ? `[{${fieldsStr}}]` : `{ ${fieldsStr} }`;
+      ret += ` ${node.fieldName}: ${embed},`;
     }
   }
   return ret;
 }
 
-function collectTypes(
-  transformedFields: TransformedSelections,
-  fragmentMap: FragmentMap,
-  types = new Set<string>()
-) {
-  for (const field of transformedFields) {
+type FragmentMap = Map<string, VisitedFragment>;
+
+interface CollectTypes {
+  selections: VisitedSelections;
+  fragmentMap: FragmentMap;
+  types?: Set<string>;
+}
+
+function collectTypes({
+  selections,
+  fragmentMap,
+  types = new Set(),
+}: CollectTypes) {
+  for (const field of selections) {
     if (isTransformedField(field)) {
       if (field.selections == null) {
         types.add(field.parentTypename);
       } else {
-        collectTypes(field.selections, fragmentMap, types);
+        collectTypes({ selections: field.selections, fragmentMap, types });
       }
     } else {
-      const fragment = fragmentMap.get(field.name);
-      collectTypes(fragment?.selections!, fragmentMap, types);
+      const { selections } = fragmentMap.get(field.name)!;
+      collectTypes({ selections, fragmentMap, types });
     }
   }
 
   return [...types];
 }
 
+function inlineFragments(
+  selectionSet: VisitedSelectionSet,
+  fragmentMap: FragmentMap
+): InlinedSelectionSet | null {
+  if (selectionSet == null) {
+    return null;
+  }
+  const { selections, ...rest } = selectionSet;
+  const next = { ...rest } as any;
+
+  if (selections || next.kind === Kind.FRAGMENT_SPREAD) {
+    const fragment = fragmentMap.get(next.name)!;
+    const nextSelections = selections || fragment.selections!;
+
+    next['selections'] = nextSelections.map((node) =>
+      inlineFragments(node as any, fragmentMap)
+    );
+  }
+
+  return next;
+}
+
+function liftFragmentSelections(
+  selectionSet: InlinedSelectionSet
+): TargetSelectionSet | null {
+  if (selectionSet == null) {
+    return null;
+  }
+
+  const { selections, ...rest } = selectionSet;
+
+  const next = { ...rest } as any;
+  if (selections) {
+    const nextSelections = [];
+    for (const node of selections) {
+      if (node.kind === Kind.FRAGMENT_SPREAD) {
+        nextSelections.push(...node.selections);
+      } else {
+        nextSelections.push(node);
+      }
+    }
+    next['selections'] = nextSelections.map((node) =>
+      liftFragmentSelections(node as any)
+    );
+  }
+  return next;
+}
+
 function handleOperationResult(
-  operation: TransformedOperation,
+  operation: VisitedOperation,
   fragmentMap: FragmentMap,
   { prefix, addTypename }: Config
 ) {
@@ -150,10 +202,16 @@ function handleOperationResult(
   const queryVarsType = `${operation.name}QueryVariables`;
   const documentNode = `${operation.name}Document`;
 
-  const transformed = operation.selectionSet.selections ?? [];
-
-  const types = collectTypes(transformed, fragmentMap);
-  const resultFields = buildResultStr(transformed, fragmentMap, addTypename);
+  const inlinedFragments = inlineFragments(
+    operation.selectionSet,
+    fragmentMap
+  )!;
+  const { selections } = liftFragmentSelections(inlinedFragments)!;
+  const types = collectTypes({ selections, fragmentMap });
+  const resultFields = buildResultStr({
+    selections,
+    addTypename,
+  });
 
   const mocks = types
     .map((typeStr) => {
@@ -210,7 +268,7 @@ export const plugin: PluginFunction<Partial<Config>> = (
   const result = visitor(docsAST, schema);
   const resolvedConfig = getConfig(config);
 
-  const operations: TransformedOperation[] = [];
+  const operations: VisitedOperation[] = [];
   const fragmentMap: FragmentMap = new Map();
 
   for (const node of result.definitions) {
@@ -245,11 +303,3 @@ export const plugin: PluginFunction<Partial<Config>> = (
       .join('\n'),
   };
 };
-
-function prettyPrint(thing: any, label?: string) {
-  if (label) {
-    console.log(label, JSON.stringify(thing, null, 2));
-    return;
-  }
-  console.log(JSON.stringify(thing, null, 2));
-}

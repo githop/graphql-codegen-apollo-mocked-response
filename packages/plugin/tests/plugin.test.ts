@@ -65,7 +65,7 @@ describe('tests', () => {
     it('should honor the addTypename config', async () => {
       const result = await produceExpectArg({ addTypename: true });
       expect(result.content).toContain(
-        "const ListPlanetsResult: ListPlanetsQuery = { __typename: 'Query', listPlanets: [{ __typename: 'Planet', id: planetMock.id, name: planetMock.name, location: {  __typename: 'Location', id: locationMock.id, coordinates: locationMock.coordinates, }, }], }"
+        "const ListPlanetsResult: ListPlanetsQuery = { __typename: 'Query', listPlanets: [{ __typename: 'Planet', id: planetMock.id, type: planetMock.type, mass: planetMock.mass, name: planetMock.name, location: {  __typename: 'Location', id: locationMock.id, coordinates: locationMock.coordinates, },}],}"
       );
       expect(result.content).toMatchSnapshot();
     });
