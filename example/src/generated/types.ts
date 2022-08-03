@@ -34,7 +34,7 @@ export type Location = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createPlanet?: Maybe<Scalars['Boolean']>;
+  createPlanet?: Maybe<Planet>;
 };
 
 export type MutationCreatePlanetArgs = {
@@ -113,6 +113,20 @@ export type PlanetFieldsFragment = {
   __typename?: 'Planet';
   name?: string | null;
   location: { __typename?: 'Location'; id: string; coordinates: string };
+};
+
+export type CreatePlanetMutationVariables = Exact<{
+  input: PlanetInput;
+}>;
+
+export type CreatePlanetMutation = {
+  __typename?: 'Mutation';
+  createPlanet?: {
+    __typename?: 'Planet';
+    id: string;
+    name?: string | null;
+    location: { __typename?: 'Location'; id: string; coordinates: string };
+  } | null;
 };
 
 export const PlanetBaseFragmentDoc = gql`
@@ -195,4 +209,59 @@ export type ListPlanetsLazyQueryHookResult = ReturnType<
 export type ListPlanetsQueryResult = Apollo.QueryResult<
   ListPlanetsQuery,
   ListPlanetsQueryVariables
+>;
+export const CreatePlanetDocument = gql`
+  mutation CreatePlanet($input: PlanetInput!) {
+    createPlanet(input: $input) {
+      id
+      name
+      location {
+        id
+        coordinates
+      }
+    }
+  }
+`;
+export type CreatePlanetMutationFn = Apollo.MutationFunction<
+  CreatePlanetMutation,
+  CreatePlanetMutationVariables
+>;
+
+/**
+ * __useCreatePlanetMutation__
+ *
+ * To run a mutation, you first call `useCreatePlanetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreatePlanetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createPlanetMutation, { data, loading, error }] = useCreatePlanetMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreatePlanetMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    CreatePlanetMutation,
+    CreatePlanetMutationVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    CreatePlanetMutation,
+    CreatePlanetMutationVariables
+  >(CreatePlanetDocument, options);
+}
+export type CreatePlanetMutationHookResult = ReturnType<
+  typeof useCreatePlanetMutation
+>;
+export type CreatePlanetMutationResult =
+  Apollo.MutationResult<CreatePlanetMutation>;
+export type CreatePlanetMutationOptions = Apollo.BaseMutationOptions<
+  CreatePlanetMutation,
+  CreatePlanetMutationVariables
 >;

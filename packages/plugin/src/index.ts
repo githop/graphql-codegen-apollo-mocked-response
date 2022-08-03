@@ -193,19 +193,17 @@ function liftFragmentSelections(
 }
 
 function handleOperationResult(
-  operation: VisitedOperation,
+  node: VisitedOperation,
   fragmentMap: FragmentMap,
   { prefix, addTypename }: Config
 ) {
-  const functionName = `mock${operation.name}`;
-  const queryResultType = `${operation.name}Query`;
-  const queryVarsType = `${operation.name}QueryVariables`;
-  const documentNode = `${operation.name}Document`;
+  const operation = node.operation[0].toUpperCase() + node.operation.slice(1);
+  const functionName = `mock${node.name}`;
+  const queryResultType = `${node.name}${operation}`;
+  const queryVarsType = `${node.name}${operation}Variables`;
+  const documentNode = `${node.name}Document`;
 
-  const inlinedFragments = inlineFragments(
-    operation.selectionSet,
-    fragmentMap
-  )!;
+  const inlinedFragments = inlineFragments(node.selectionSet, fragmentMap)!;
   const { selections } = liftFragmentSelections(inlinedFragments)!;
   const types = collectTypes({ selections, fragmentMap });
   const resultFields = buildResultStr({
@@ -221,7 +219,7 @@ function handleOperationResult(
     })
     .join('\n');
 
-  const queryResultVar = `${operation.name}Result`;
+  const queryResultVar = `${node.name}Result`;
   const queryResult = `const ${queryResultVar}: ${queryResultType} = {${resultFields}}`;
   const templateVars = {
     functionName,

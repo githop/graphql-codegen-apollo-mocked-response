@@ -58,7 +58,7 @@ describe('tests', () => {
       });
 
       expect(result.prepend).toContain(
-        "import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from './custom-types-file'"
+        "import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables, CreatePlanetDocument, CreatePlanetMutation, CreatePlanetMutationVariables } from './custom-types-file'"
       );
     });
 
@@ -88,7 +88,7 @@ describe('tests', () => {
         "import { MockedResponse } from '@apollo/client/testing';"
       );
       expect(result.prepend).toContain(
-        "import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables } from './types'"
+        "import { ListPlanetsDocument, ListPlanetsQuery, ListPlanetsQueryVariables, CreatePlanetDocument, CreatePlanetMutation, CreatePlanetMutationVariables } from './types'"
       );
     });
 
@@ -103,6 +103,14 @@ describe('tests', () => {
 
       expect(result.content).toContain(
         'const ListPlanetsResult: ListPlanetsQuery = { listPlanets: [{ id: planetMock.id, type: planetMock.type, mass: planetMock.mass, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, },}],}'
+      );
+    });
+
+    it('should generate a valid mutation result', async () => {
+      const result = await produceExpectArg();
+
+      expect(result.content).toContain(
+        'const CreatePlanetResult: CreatePlanetMutation = { createPlanet: {  id: planetMock.id, name: planetMock.name, location: {  id: locationMock.id, coordinates: locationMock.coordinates, }, },}'
       );
     });
   });

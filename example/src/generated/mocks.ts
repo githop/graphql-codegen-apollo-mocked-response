@@ -4,6 +4,9 @@ import {
   ListPlanetsDocument,
   ListPlanetsQuery,
   ListPlanetsQueryVariables,
+  CreatePlanetDocument,
+  CreatePlanetMutation,
+  CreatePlanetMutationVariables,
 } from './types';
 import {
   ListPlanetsInput,
@@ -49,7 +52,7 @@ export const aMutation = (overrides?: Partial<Mutation>): Mutation => {
     createPlanet:
       overrides && overrides.hasOwnProperty('createPlanet')
         ? overrides.createPlanet!
-        : true,
+        : aPlanet(),
   };
 };
 
@@ -154,6 +157,33 @@ export const mockListPlanets: MockFn<
     },
     result: {
       data: result != null ? result : ListPlanetsResult,
+      error,
+    },
+  };
+};
+
+export const mockCreatePlanet: MockFn<
+  CreatePlanetMutationVariables,
+  CreatePlanetMutation
+> = ({ result, variables, error }) => {
+  const planetMock = aPlanet();
+  const locationMock = aLocation();
+
+  const CreatePlanetResult: CreatePlanetMutation = {
+    createPlanet: {
+      id: planetMock.id,
+      name: planetMock.name,
+      location: { id: locationMock.id, coordinates: locationMock.coordinates },
+    },
+  };
+
+  return {
+    request: {
+      query: CreatePlanetDocument,
+      variables,
+    },
+    result: {
+      data: result != null ? result : CreatePlanetResult,
       error,
     },
   };

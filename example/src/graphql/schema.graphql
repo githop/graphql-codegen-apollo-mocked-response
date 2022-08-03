@@ -37,5 +37,5 @@ type Query {
 }
 
 type Mutation {
-  createPlanet(input: PlanetInput): Boolean
+  createPlanet(input: PlanetInput): Planet
 }

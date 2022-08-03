@@ -22,3 +22,14 @@ fragment PlanetFields on Planet {
     ...LocationFields
   }
 }
+
+mutation CreatePlanet($input: PlanetInput!) {
+  createPlanet(input: $input) {
+    id
+    name
+    location {
+      id
+      coordinates
+    }
+  }
+}
