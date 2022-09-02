@@ -21,105 +21,105 @@ export type Scalars = {
   Float: number;
 };
 
-export type ListPlanetsInput = {
-  type?: InputMaybe<PlanetType>;
+export type list_planets_input = {
+  type?: InputMaybe<planet_type>;
 };
 
-export type Location = {
+export type location = {
   __typename?: 'Location';
   coordinates: Scalars['String'];
   description?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
 };
 
-export type Mutation = {
+export type mutation = {
   __typename?: 'Mutation';
-  createPlanet?: Maybe<Planet>;
+  createPlanet?: Maybe<planet>;
 };
 
-export type MutationCreatePlanetArgs = {
-  input?: InputMaybe<PlanetInput>;
+export type mutationcreate_planet_args = {
+  input?: InputMaybe<planet_input>;
 };
 
-export type Orbit = {
+export type orbit = {
   __typename?: 'Orbit';
   id: Scalars['ID'];
-  location: Location;
+  location: location;
 };
 
-export type Planet = {
+export type planet = {
   __typename?: 'Planet';
   id: Scalars['ID'];
-  location: Location;
+  location: location;
   mass?: Maybe<Scalars['Int']>;
   name?: Maybe<Scalars['String']>;
-  type?: Maybe<PlanetType>;
+  type?: Maybe<planet_type>;
 };
 
-export type PlanetInput = {
+export type planet_input = {
   id: Scalars['ID'];
 };
 
-export const PlanetType = {
-  Gaseous: 'Gaseous',
-  Terrestrial: 'Terrestrial',
+export const planet_type = {
+  gaseous: 'Gaseous',
+  terrestrial: 'Terrestrial',
 } as const;
 
-export type PlanetType = typeof PlanetType[keyof typeof PlanetType];
-export type Query = {
+export type planet_type = typeof planet_type[keyof typeof planet_type];
+export type query = {
   __typename?: 'Query';
-  getPlanet?: Maybe<Planet>;
-  listLocations: Array<Location>;
-  listPlanets: Array<Planet>;
+  getPlanet?: Maybe<planet>;
+  listLocations: Array<location>;
+  listPlanets: Array<planet>;
 };
 
-export type QueryGetPlanetArgs = {
-  input: PlanetInput;
+export type queryget_planet_args = {
+  input: planet_input;
 };
 
-export type QueryListPlanetsArgs = {
-  input: ListPlanetsInput;
+export type querylist_planets_args = {
+  input: list_planets_input;
 };
 
-export type ListPlanetsQueryVariables = Exact<{
-  input: ListPlanetsInput;
+export type list_planets_query_variables = Exact<{
+  input: list_planets_input;
 }>;
 
-export type ListPlanetsQuery = {
+export type list_planets_query = {
   __typename?: 'Query';
   listPlanets: Array<{
     __typename?: 'Planet';
     mass?: number | null;
     id: string;
-    type?: PlanetType | null;
+    type?: planet_type | null;
     name?: string | null;
     location: { __typename?: 'Location'; id: string; coordinates: string };
   }>;
 };
 
-export type LocationFieldsFragment = {
+export type location_fields_fragment = {
   __typename?: 'Location';
   id: string;
   coordinates: string;
 };
 
-export type PlanetBaseFragment = {
+export type planet_base_fragment = {
   __typename?: 'Planet';
   id: string;
-  type?: PlanetType | null;
+  type?: planet_type | null;
 };
 
-export type PlanetFieldsFragment = {
+export type planet_fields_fragment = {
   __typename?: 'Planet';
   name?: string | null;
   location: { __typename?: 'Location'; id: string; coordinates: string };
 };
 
-export type CreatePlanetMutationVariables = Exact<{
-  input: PlanetInput;
+export type create_planet_mutation_variables = Exact<{
+  input: planet_input;
 }>;
 
-export type CreatePlanetMutation = {
+export type create_planet_mutation = {
   __typename?: 'Mutation';
   createPlanet?: {
     __typename?: 'Planet';
@@ -129,28 +129,28 @@ export type CreatePlanetMutation = {
   } | null;
 };
 
-export const PlanetBaseFragmentDoc = gql`
+export const planet_base_fragment_doc = gql`
   fragment PlanetBase on Planet {
     id
     type
   }
 `;
-export const LocationFieldsFragmentDoc = gql`
+export const location_fields_fragment_doc = gql`
   fragment LocationFields on Location {
     id
     coordinates
   }
 `;
-export const PlanetFieldsFragmentDoc = gql`
+export const planet_fields_fragment_doc = gql`
   fragment PlanetFields on Planet {
     name
     location {
       ...LocationFields
     }
   }
-  ${LocationFieldsFragmentDoc}
+  ${location_fields_fragment_doc}
 `;
-export const ListPlanetsDocument = gql`
+export const list_planets_document = gql`
   query ListPlanets($input: ListPlanetsInput!) {
     listPlanets(input: $input) {
       ...PlanetBase
@@ -158,59 +158,61 @@ export const ListPlanetsDocument = gql`
       ...PlanetFields
     }
   }
-  ${PlanetBaseFragmentDoc}
-  ${PlanetFieldsFragmentDoc}
+  ${planet_base_fragment_doc}
+  ${planet_fields_fragment_doc}
 `;
 
 /**
- * __useListPlanetsQuery__
+ * __uselist_planets_query__
  *
- * To run a query within a React component, call `useListPlanetsQuery` and pass it any options that fit your needs.
- * When your component renders, `useListPlanetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `uselist_planets_query` and pass it any options that fit your needs.
+ * When your component renders, `uselist_planets_query` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useListPlanetsQuery({
+ * const { data, loading, error } = uselist_planets_query({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useListPlanetsQuery(
+export function uselist_planets_query(
   baseOptions: Apollo.QueryHookOptions<
-    ListPlanetsQuery,
-    ListPlanetsQueryVariables
+    list_planets_query,
+    list_planets_query_variables
   >
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<ListPlanetsQuery, ListPlanetsQueryVariables>(
-    ListPlanetsDocument,
+  return Apollo.useQuery<list_planets_query, list_planets_query_variables>(
+    list_planets_document,
     options
   );
 }
-export function useListPlanetsLazyQuery(
+export function uselist_planets_lazy_query(
   baseOptions?: Apollo.LazyQueryHookOptions<
-    ListPlanetsQuery,
-    ListPlanetsQueryVariables
+    list_planets_query,
+    list_planets_query_variables
   >
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<ListPlanetsQuery, ListPlanetsQueryVariables>(
-    ListPlanetsDocument,
+  return Apollo.useLazyQuery<list_planets_query, list_planets_query_variables>(
+    list_planets_document,
     options
   );
 }
-export type ListPlanetsQueryHookResult = ReturnType<typeof useListPlanetsQuery>;
-export type ListPlanetsLazyQueryHookResult = ReturnType<
-  typeof useListPlanetsLazyQuery
+export type list_planets_queryHookResult = ReturnType<
+  typeof uselist_planets_query
 >;
-export type ListPlanetsQueryResult = Apollo.QueryResult<
-  ListPlanetsQuery,
-  ListPlanetsQueryVariables
+export type list_planets_lazy_queryHookResult = ReturnType<
+  typeof uselist_planets_lazy_query
 >;
-export const CreatePlanetDocument = gql`
+export type list_planets_query_result = Apollo.QueryResult<
+  list_planets_query,
+  list_planets_query_variables
+>;
+export const create_planet_document = gql`
   mutation CreatePlanet($input: PlanetInput!) {
     createPlanet(input: $input) {
       id
@@ -222,46 +224,46 @@ export const CreatePlanetDocument = gql`
     }
   }
 `;
-export type CreatePlanetMutationFn = Apollo.MutationFunction<
-  CreatePlanetMutation,
-  CreatePlanetMutationVariables
+export type create_planet_mutation_fn = Apollo.MutationFunction<
+  create_planet_mutation,
+  create_planet_mutation_variables
 >;
 
 /**
- * __useCreatePlanetMutation__
+ * __usecreate_planet_mutation__
  *
- * To run a mutation, you first call `useCreatePlanetMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreatePlanetMutation` returns a tuple that includes:
+ * To run a mutation, you first call `usecreate_planet_mutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usecreate_planet_mutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createPlanetMutation, { data, loading, error }] = useCreatePlanetMutation({
+ * const [createPlanetMutation, { data, loading, error }] = usecreate_planet_mutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreatePlanetMutation(
+export function usecreate_planet_mutation(
   baseOptions?: Apollo.MutationHookOptions<
-    CreatePlanetMutation,
-    CreatePlanetMutationVariables
+    create_planet_mutation,
+    create_planet_mutation_variables
   >
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useMutation<
-    CreatePlanetMutation,
-    CreatePlanetMutationVariables
-  >(CreatePlanetDocument, options);
+    create_planet_mutation,
+    create_planet_mutation_variables
+  >(create_planet_document, options);
 }
-export type CreatePlanetMutationHookResult = ReturnType<
-  typeof useCreatePlanetMutation
+export type create_planet_mutationHookResult = ReturnType<
+  typeof usecreate_planet_mutation
 >;
-export type CreatePlanetMutationResult =
-  Apollo.MutationResult<CreatePlanetMutation>;
-export type CreatePlanetMutationOptions = Apollo.BaseMutationOptions<
-  CreatePlanetMutation,
-  CreatePlanetMutationVariables
+export type create_planet_mutation_result =
+  Apollo.MutationResult<create_planet_mutation>;
+export type create_planet_mutation_options = Apollo.BaseMutationOptions<
+  create_planet_mutation,
+  create_planet_mutation_variables
 >;

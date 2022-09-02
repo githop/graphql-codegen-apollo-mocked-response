@@ -11,6 +11,7 @@ generates:
       - typescript-react-apollo
     config:
       enumsAsConst: true
+      namingConvention: change-case-all#snakeCase
   src/generated/mocks.ts:
     plugins:
       - typescript-mock-data
@@ -18,3 +19,4 @@ generates:
     config:
       typesFile: './types.ts'
       addTypename: false
+      namingConvention: change-case-all#snakeCase

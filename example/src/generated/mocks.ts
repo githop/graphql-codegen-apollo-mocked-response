@@ -1,12 +1,12 @@
 import { ApolloError } from '@apollo/client';
 import { MockedResponse } from '@apollo/client/testing';
 import {
-  ListPlanetsDocument,
-  ListPlanetsQuery,
-  ListPlanetsQueryVariables,
-  CreatePlanetDocument,
-  CreatePlanetMutation,
-  CreatePlanetMutationVariables,
+  list_planetsdocument,
+  list_planetsquery,
+  list_planetsqueryvariables,
+  create_planetdocument,
+  create_planetmutation,
+  create_planetmutationvariables,
 } from './types';
 import {
   ListPlanetsInput,
@@ -129,13 +129,13 @@ interface MockFn<Variables, Query> {
 }
 
 export const mockListPlanets: MockFn<
-  ListPlanetsQueryVariables,
-  ListPlanetsQuery
+  list_planetsqueryvariables,
+  list_planetsquery
 > = ({ result, variables, error }) => {
   const planetMock = aPlanet();
   const locationMock = aLocation();
 
-  const ListPlanetsResult: ListPlanetsQuery = {
+  const ListPlanetsResult: list_planetsquery = {
     listPlanets: [
       {
         id: planetMock.id,
@@ -152,7 +152,7 @@ export const mockListPlanets: MockFn<
 
   return {
     request: {
-      query: ListPlanetsDocument,
+      query: list_planetsdocument,
       variables,
     },
     result: {
@@ -163,13 +163,13 @@ export const mockListPlanets: MockFn<
 };
 
 export const mockCreatePlanet: MockFn<
-  CreatePlanetMutationVariables,
-  CreatePlanetMutation
+  create_planetmutationvariables,
+  create_planetmutation
 > = ({ result, variables, error }) => {
   const planetMock = aPlanet();
   const locationMock = aLocation();
 
-  const CreatePlanetResult: CreatePlanetMutation = {
+  const CreatePlanetResult: create_planetmutation = {
     createPlanet: {
       id: planetMock.id,
       name: planetMock.name,
@@ -179,7 +179,7 @@ export const mockCreatePlanet: MockFn<
 
   return {
     request: {
-      query: CreatePlanetDocument,
+      query: create_planetdocument,
       variables,
     },
     result: {

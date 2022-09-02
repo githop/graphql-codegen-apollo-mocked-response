@@ -1,4 +1,5 @@
-import { PluginFunction } from '@graphql-codegen/plugin-helpers';
+import { PluginFunction, Types } from '@graphql-codegen/plugin-helpers';
+import { convertFactory } from '@graphql-codegen/visitor-plugin-common';
 import { concatAST, Kind } from 'graphql';
 import a from 'indefinite';
 import {
@@ -14,6 +15,7 @@ import {
   VisitedSelectionSet,
   visitor,
 } from './visitor';
+import { Config, getConfig } from './config';
 
 const APOLLO_IMPORTS = [
   "import { ApolloError } from '@apollo/client';",
@@ -195,13 +197,17 @@ function liftFragmentSelections(
 function handleOperationResult(
   node: VisitedOperation,
   fragmentMap: FragmentMap,
-  { prefix, addTypename }: Config
+  { prefix, addTypename, namingConvention, typesPrefix, typesSuffix }: Config
 ) {
-  const operation = node.operation[0].toUpperCase() + node.operation.slice(1);
+  const convertName = convertFactory({ namingConvention });
+  const operation = convertName(node.operation);
   const functionName = `mock${node.name}`;
-  const queryResultType = `${node.name}${operation}`;
-  const queryVarsType = `${node.name}${operation}Variables`;
-  const documentNode = `${node.name}Document`;
+  const queryResultType = convertName(node.name, { suffix: operation });
+  const queryVarsType = convertName(`${node.name}${operation}variables`);
+
+  const documentNode = convertName(node.name, {
+    suffix: convertName('document'),
+  });
 
   const inlinedFragments = inlineFragments(node.selectionSet, fragmentMap)!;
   const { selections } = liftFragmentSelections(inlinedFragments)!;
@@ -239,28 +245,10 @@ function handleOperationResult(
   };
 }
 
-export interface Config {
-  typesFile: string;
-  addTypename: boolean;
-  prefix?: string;
-}
-
-export function getConfig(config?: Partial<Config>): Config {
-  const baseConfig: Config = {
-    typesFile: './types.ts',
-    addTypename: false,
-  };
-  const resolved = Object.assign(baseConfig, config);
-  // drop extension
-  resolved.typesFile = resolved.typesFile.replace(/\.[\w]+$/, '');
-  return resolved;
-}
-
-export const plugin: PluginFunction<Partial<Config>> = (
-  schema,
-  documents,
-  config
-) => {
+export const plugin: PluginFunction<
+  Partial<Config>,
+  Types.ComplexPluginOutput
+> = (schema, documents, config) => {
   const docsAST = concatAST(documents.map((v) => v.document!));
 
   const result = visitor(docsAST, schema);

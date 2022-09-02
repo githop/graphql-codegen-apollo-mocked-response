@@ -1,9 +1,10 @@
-import { plugin, getConfig, Config } from '../src';
+import { plugin } from '../src';
 import { describe, it, expect } from 'vitest';
 import { isComplexPluginOutput, Types } from '@graphql-codegen/plugin-helpers';
 import { loadDocuments, loadSchema } from '@graphql-tools/load';
 import { resolve } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { getConfig, Config } from '../src/config';
 
 describe('tests', () => {
   describe('config', () => {
@@ -12,6 +13,9 @@ describe('tests', () => {
       expect(resolvedConfig).toEqual({
         typesFile: './types',
         addTypename: false,
+        namingConvention: 'change-case-all#pascalCase',
+        typesSuffix: null,
+        typesPrefix: null,
       });
     });
 
@@ -25,6 +29,9 @@ describe('tests', () => {
         typesFile: './foo/types',
         addTypename: false,
         prefix: 'b',
+        namingConvention: 'change-case-all#pascalCase',
+        typesSuffix: null,
+        typesPrefix: null,
       });
     });
 
@@ -35,6 +42,9 @@ describe('tests', () => {
       expect(resolvedConfig).toEqual({
         typesFile: './types',
         addTypename: true,
+        namingConvention: 'change-case-all#pascalCase',
+        typesSuffix: null,
+        typesPrefix: null,
       });
     });
 
@@ -68,6 +78,14 @@ describe('tests', () => {
         "const ListPlanetsResult: ListPlanetsQuery = { __typename: 'Query', listPlanets: [{ __typename: 'Planet', id: planetMock.id, type: planetMock.type, mass: planetMock.mass, name: planetMock.name, location: {  __typename: 'Location', id: locationMock.id, coordinates: locationMock.coordinates, },}],}"
       );
       expect(result.content).toMatchSnapshot();
+    });
+
+    it.only('should honor the namingConvention config', async () => {
+      const result = await produceExpectArg({
+        namingConvention: 'change-case-all#snakeCase',
+      });
+
+      console.log('result lol', result);
     });
   });
 
